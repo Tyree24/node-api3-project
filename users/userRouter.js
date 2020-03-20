@@ -5,7 +5,32 @@ const Posts = require('../posts/postDb.js');
 
 const router = express.Router();
 
-router.post('/', (req, res) => {
+router.post('/', validateUser, (req, res) => {
+  // do your magic!
+
+  const name = req.body.name;
+
+  Users.insert({ name }).then(user => {
+    res.status(201).json(user);
+  }).catch(err => {
+    console.log(err);
+    res.status(500).json({ message: "Error adding the post" });
+  });
+});
+
+router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
+  // do your magic!
+  const post = req.body;
+
+  Posts.insert(post).then(post => {
+    res.status(201).json(post);
+  }).catch(err => {
+    console.log(err);
+    res.status(500).json({ error: "Error adding post" });
+  });
+});
+
+router.get('/', (req, res) => {
   // do your magic!
   Users.get(req.query).then(users => {
     res.status(200).json(users);
@@ -13,22 +38,37 @@ router.post('/', (req, res) => {
     console.log(err);
     res.status(500).json({ message: "Error retrieving the posts" });
   });
+
 });
 
-router.post('/:id/posts', (req, res) => {
+router.get('/:id', validateUserId, (req, res) => {
   // do your magic!
-});
 
-router.get('/', (req, res) => {
-  // do your magic!
-});
+  const id = req.params.id;
 
-router.get('/:id', (req, res) => {
-  // do your magic!
+  Users.getById(id).then(user => {
+    if (user) {
+      res.status(200).json(user);
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  }).catch(err => {
+    console.log(err);
+    res.status(500).json({ message: 'Error retrieving this user' })
+  });
 });
 
 router.get('/:id/posts', (req, res) => {
   // do your magic!
+  const id = req.params.id;
+
+  Users.getUserPosts(id).then(posts => {
+    res.status(200).json(posts);
+  }).catch(err => {
+    console.log(err);
+    res.status(500).json({ errorMessage: "Error getting user's posts" });
+  });
+
 });
 
 router.delete('/:id', (req, res) => {
